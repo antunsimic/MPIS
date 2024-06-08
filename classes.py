@@ -15,13 +15,16 @@ class Upravljanje(Enum):
     LOKALNO = "lokalno"
 
 
-class PrimarnaOprema():
+class PrimarnaOprema:
     def __init__(self, stanje):
         self.stanje = stanje
 
     def komanda(self, ukljuci): 
+        #ukljuci = true -> uključenje 
+        #ukljuci = false -> isključenje
         self.stanje=ukljuci
-        # return self.stanje     - mislim da je ovo suvišno, metoda odredi_polozaj vraća stanje, metoda komanda mijenja stanje
+        return self.stanje
+
     
     def odredi_polozaj(self):
         return self.stanje
@@ -33,14 +36,10 @@ class Prekidac(PrimarnaOprema):
 class Rastavljac(PrimarnaOprema):
     pass
 
-class Zastita():           # uklonjeno naslijeđivanje da ne naslijeđuje Primarnu opremu prema klasnom dijagramu
-    def __init__(self, stanje):
-        self.stanje = stanje
-    
-    def odredi_stanje(self):
-        return self.stanje      # dodan atribut stanje (tako da i Nadstrujna zaštita i distanttna zaštita imaju stanje)
+class Zastita:
+  pass
 
-class Polje():
+class Polje:
     def __init__(self, prekidac, s_rastavljac, i_rastavljac):
         self.prekidac = prekidac
         self.s_rastavljac = s_rastavljac
@@ -50,6 +49,7 @@ class Polje():
 class PrekidacLTB145D1(Prekidac):                   # naslijeđuje klasu Prekidac
     def __init__(self, stanje):                     # konstruktor
         super().__init__(stanje)                    # konstruktor nad klase: Prekidac
+
         self.gubitak_sf6 = StanjeOp.PRESTANAK
         self.blokada_rada = StanjeOp.PRESTANAK
         self.blokada_isklopa = StanjeOp.PRESTANAK
@@ -57,9 +57,9 @@ class PrekidacLTB145D1(Prekidac):                   # naslijeđuje klasu Prekida
     
     def provjeriGubitakSF6(self):
         return self.gubitak_sf6
-    
 
-class APU():
+
+class APU:
     def __init__(self):
         self.ukljucenje = StanjeOp.PRESTANAK
         self.p1 = StanjeOp.PRESTANAK
@@ -73,6 +73,7 @@ class APU():
 class Distantna(Zastita):
     def __init__(self, stanje):
         super().__init__(stanje)                    # konsruktor nad klase: Zastita
+
         self.iskljucenje = StanjeOp.PRESTANAK
         self.faza_l1 = StanjeOp.PRESTANAK
         self.faza_l2 = StanjeOp.PRESTANAK
@@ -81,8 +82,8 @@ class Distantna(Zastita):
         self.kvar = StanjeOp.PRESTANAK
 
 class Nadstrujna(Zastita):
-    def __init__(self, stanje):
-        super().__init__(stanje)
+
+    def __init__(self):
         self.npc_iskljucenje = StanjeOp.PRESTANAK
         self.vpc_iskljucenje = StanjeOp.PRESTANAK
         self.zemljospojna_iskljucenje = StanjeOp.PRESTANAK
@@ -90,10 +91,13 @@ class Nadstrujna(Zastita):
         self.od_preopterecenja_iskljucenje = StanjeOp.PRESTANAK
         self.relej_kvar = StanjeOp.PRESTANAK
 
-class MjerniPretvornik():
+
+class MjerniPretvornik:
+
     def __init__(self, radna_energija, jalova_snaga):
         self.radna_energija = radna_energija
         self.jalova_snaga = jalova_snaga
+
 
 
 
@@ -102,6 +106,7 @@ class RSabirnicki(Rastavljac):  # naslijeđuje klasu Rastavljac
 
 class RIzlazni(Rastavljac):     # naslijeđuje klasu Rastavljac
     pass                        #  nema svojih atributa
+
 
 
 class DalekovodnoPolje(Polje):                                  # naslijeđuje klasu Polje
@@ -117,12 +122,13 @@ class DalekovodnoPolje(Polje):                                  # naslijeđuje k
         self.dalekovod = dalekovod                              # + klasa: Dalekovod
 
 
-class Napajanje():
+class Napajanje:
     def __init__(self, stanje, kapacitet, napon, potrosnja):
         self.stanje = stanje
         self.kapacitet = kapacitet
         self.napon = napon
         self.potrosnja = potrosnja
+
 
     def odredi_stanje(self):
         return self.stanje
@@ -132,6 +138,7 @@ class TPKoncar(Prekidac):                           # naslijeđuje klasu Prekida
         super().__init__(stanje)                    # konstruktor nad klase: Prekidac
         self.tlak = tlak                            # ??
         self.pad_tlaka_16b = StanjeOp.PRESTANAK    
+
         self.pad_tlaka_14b = StanjeOp.PRESTANAK
         self.pad_tlaka_11b = StanjeOp.PRESTANAK
         self.apu_blokada = StanjeOp.PRESTANAK
@@ -144,7 +151,9 @@ class TPKoncar(Prekidac):                           # naslijeđuje klasu Prekida
     def odrediUpravljanje(self):
         return self.upravljanje
 
-class Dalekovod():
+
+class Dalekovod:
+
     def ukljuci(self):
         print("Dalekovod uključen")
 
@@ -157,3 +166,4 @@ class SpojnoPolje(Polje):                                      # naslijeđuje kl
         self.grupni_iskljucenje = StanjeOp.PRESTANAK           # klasa: StanjeOp (enum vrijednost) 
         self.grupni_upozorenje = StanjeOp.PRESTANAK            # klasa: StanjeOp (enum vrijednost)  
         self.grupni_smetnje = StanjeOp.PRESTANAK               # klasa: StanjeOp (enum vrijednost)  
+
