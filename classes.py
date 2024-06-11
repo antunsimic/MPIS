@@ -28,7 +28,7 @@ class Napon:
 
 
 class Sabirnica:
-    def __init__(self, id, stanje=Stanje.ISKLJUČEN):
+    def __init__(self, id=0, stanje=Stanje.ISKLJUČEN):
         self.id = id
         self.stanje = stanje
 
@@ -42,17 +42,17 @@ class Sabirnica:
 
 
 class PrimarnaOprema:
-    def __init__(self, stanje):
+    def __init__(self, stanje=Stanje.UKLJUČEN):
         self.stanje = stanje
         self.napon=Napon() #ima napon
 
     def komanda(self, ukljuci): 
         #ukljuci = true -> uključenje 
         #ukljuci = false -> isključenje
-        if not self.napon.is_powered():
+        if not self.ima_napajanje():
             print(f"{self.__class__.__name__} se ne može uključiti / isključiti, nema napajanja.")
             return None
-        self.stanje=ukljuci
+        self.stanje= Stanje.UKLJUČEN if ukljuci else Stanje.ISKLJUČEN
         return self.stanje
 
     
@@ -67,13 +67,16 @@ class PrimarnaOprema:
     
 
 class Prekidac(PrimarnaOprema):
+    def __init__(self):
+        super().__init()
     def dovoljnoSF6():
         return True
     def daljinskoUpravljanje():
         return True
 
 class Rastavljac(PrimarnaOprema):
-    pass
+    def __init__(self, stanje=Stanje.UKLJUČEN):
+        super().__init(stanje)
 
 class Zastita:
   
@@ -88,67 +91,35 @@ class Zastita:
 
 
 class Polje:
-    def __init__(self, prekidac, i_rastavljac, u_rastavljac, sabirnice):
-        if not isinstance(prekidac, Prekidac):
-            raise TypeError("prekidac must be an instance of Prekidac")
-        if not isinstance(i_rastavljac, RIzlazni):
-            raise TypeError("i_rastavljac must be an instance of RIzlazni")
-        if not isinstance(u_rastavljac, RUzemljenja):
-            raise TypeError("u_rastavljac must be an instance of RUzemljenja")
-        for i in len(sabirnice):
-            if not isinstance(sabirnice[i], Sabirnica):
-                raise TypeError("every element of sabirnice must be an instance of Sabirnica")
-        self.prekidac = prekidac
-        self.sabirnice = sabirnice  # Lista sabirnica povezanih s ovim poljem
-        self.s_rastavljaci = []
-        self.i_rastavljac = i_rastavljac
-        self.u_rastavljac = u_rastavljac
-        for sabirnica in self.sabirnice:
-            self.s_rastavljaci.append(RSabirnicki(sabirnica))
-            
+    def __init__(self):
+
+        self.prekidac = Prekidac()
+        self.i_rastavljac = RIzlazni()
+        self.u_rastavljac = RUzemljenja()
     def imaju_napajanje(self):
-        for uredaj in [self.prekidac, self.i_rastavljac, self.u_rastavljac]:
-            if not uredaj.ima_napajanje():
-                print(f"{uredaj.__class__.__name__} nema napajanje.")
-                return False
-        for rastavljac in self.s_rastavljaci:
-            if not rastavljac.ima_napajanje():
-                print(f"{rastavljac.__class__.__name__} nema napajanje.")
-                return False
-        return True
-    
+            for uredaj in [self.prekidac, self.i_rastavljac, self.u_rastavljac, self.s_rastavljacS1, self.s_rastavljacS2]:
+                if not uredaj.ima_napajanje():
+                    print(f"{uredaj.__class__.__name__} nema napajanje.")
+                    return False
+            
+            return True
     def poznati_polozaji(self):
-        for uredaj in [self.prekidac, self.i_rastavljac, self.u_rastavljac]:
-            if not uredaj.nije_nepoznato():
-                print(f"{uredaj.__class__.__name__} je u nepoznatom položaju.")
-                return False
-        for rastavljac in self.s_rastavljaci:
-            if not rastavljac.nije_nepoznato():
-                print(f"{rastavljac.__class__.__name__} je u nepoznatom položaju.")
-                return False
-        return True
-    def spremno(self):
-        if not self.imaju_napajanje():
-            print("Nemaju svi sklopni aparati napajanje. Polje nije spremno")
-            return False
-        if not self.prekidac.dovoljnoSF6():
-            print("Razina plina SF6 je preniska. Polje nije spremno.")
-            return False
-        if not self.prekidac.daljinskoUpravljanje():
-            print("Daljinsko upravljanje nije omogućeno. Polje nije spremno.")
-            return False
-        if not self.poznati_polozaji():
-            print("Jedan od sklopnih aparata je u nepoznatom položaju. Potrebno je poslati osoblje u rasklopno postrojenje")
-            print("Polje nije spremno")
-            return False
-        return True
-        
+            for uredaj in [self.prekidac, self.i_rastavljac, self.u_rastavljac, self.s_rastavljacS1, self.s_rastavljacS2]:
+                if not uredaj.nije_nepoznato():
+                    print(f"{uredaj.__class__.__name__} je u nepoznatom stanju.")
+                    return False
+            
+            return True
+
+    
+
+                
         
 
 
 class LTB145D1(Prekidac):                   # naslijeđuje klasu Prekidac
-    def __init__(self, stanje):                     # konstruktor
-        super().__init__(stanje)                    # konstruktor nad klase: Prekidac
+    def __init__(self):                     # konstruktor
+        super().__init__()                    # konstruktor nad klase: Prekidac
 
         self.gubitak_sf6 = StanjeOp.PRESTANAK
         self.blokada_rada = StanjeOp.PRESTANAK
@@ -161,7 +132,7 @@ class LTB145D1(Prekidac):                   # naslijeđuje klasu Prekidac
 
 class APU(Zastita):
     def __init__(self):
-        
+        super().__init__()
         self.ukljucenje = StanjeOp.PRESTANAK
         self.p1 = StanjeOp.PRESTANAK
         self.p3 = StanjeOp.PRESTANAK
@@ -171,7 +142,7 @@ class APU(Zastita):
         
 class Distantna(Zastita):
     def __init__(self):
-        
+        super().__init__()
         self.iskljucenje = StanjeOp.PRESTANAK
         self.faza_l1 = StanjeOp.PRESTANAK
         self.faza_l2 = StanjeOp.PRESTANAK
@@ -183,7 +154,7 @@ class Distantna(Zastita):
 class Nadstrujna(Zastita):
 
     def __init__(self):
-        
+        super().__init__()
         self.npc_iskljucenje = StanjeOp.PRESTANAK
         self.vpc_iskljucenje = StanjeOp.PRESTANAK
         self.zemljospojna_iskljucenje = StanjeOp.PRESTANAK
@@ -207,63 +178,49 @@ class MjerniPretvornik:
 
 
 class RSabirnicki(Rastavljac):  # naslijeđuje klasu Rastavljac
-    def __init__(self, sabirnica, stanje=Stanje.ISKLJUČEN):
-        super().__init__(stanje)
+    def __init__(self, sabirnica):
+        super().__init__()
         self.sabirnica = sabirnica  # Lista sabirnica s kojima je rastavljač povezan
-    
+        
     def aktiviraj(self):
         self.sabirnica.ukljuci()
-        self.stanje = True
+        self.komanda(True)
         print("Rastavljač je uključen i sabirnice su aktivne.")
     
     def deaktiviraj(self):
         self.sabirnica.iskljuci()
-        self.stanje = False
-        print("Rastavljač je isključen i sabirnice su deaktivirane.")                        #  nema svojih atributa
+        self.komanda(False)
+        print("Rastavljač je isključen i sabirnice su deaktivirane.") 
+        
+    def _komanda(self, ukljuci):
+        # Private method, not meant to be called directly outside this class
+        super().komanda(ukljuci)        
+              
 
 class RIzlazni(Rastavljac):     # naslijeđuje klasu Rastavljac
-    pass                        #  nema svojih atributa
+    def __init__(self):
+        super().__init__()                     #  nema svojih atributa
 
 class RUzemljenja(Rastavljac):
-    pass
+    def __init(self, state=Stanje.ISKLJUČEN):
+        super().__init__(state)
+        
+    
 
 
 
 class DalekovodnoPolje(Polje):                                  # naslijeđuje klasu Polje
-    def __init__(self, prekidac, sabirnice, i_rastavljac, u_rastavljac, dist_zastita, nads_zastita, apu, mjera, S_polje=None): # konstruktor
-        super().__init__(prekidac, i_rastavljac, u_rastavljac, sabirnice)  # konstruktor nad klase: Polje
-        if not isinstance(dist_zastita, Distantna):
-            raise TypeError("dist_zastita must be an instance of Distantna")
-        if not isinstance(nads_zastita, Nadstrujna):
-            raise TypeError("nads_zastita must be an instance of Nadstrujna")
-        if not isinstance(apu, APU):
-            raise TypeError("apu must be an instance of APU")  
-        if not isinstance(mjera, MjerniPretvornik):
-            raise TypeError("mjera must be an instance of MjerniPretvornik")  
-        if S_polje is not None and not isinstance(S_polje, SpojnoPolje):
-            raise TypeError("S_polje, if provided, must be an instance of SpojnoPolje")
-        self.dist_zastita = dist_zastita
-        self.nads_zastita = nads_zastita                        # abstraktna: klasa Zastita/Nadstrujna
-        self.apu = apu                                          # klasa: APU    
-        self.mjera = mjera                                      # klasa: MjerniPretvornik
+    def __init__(self): # konstruktor
+        super().__init__()  # konstruktor nad klase: Polje
+   
+        self.dist_zastita = Distantna()
+        self.nads_zastita = Nadstrujna()                        # abstraktna: klasa Zastita/Nadstrujna
+        self.apu = APU()                                          # klasa: APU    
+        self.mjera = MjerniPretvornik()                                      # klasa: MjerniPretvornik
         self.grupni_iskljucenje = StanjeOp.PRESTANAK            # klasa: StanjeOp (enum vrijednost)
         self.grupni_upozorenje = StanjeOp.PRESTANAK             # klasa: StanjeOp (enum vrijednost)
         self.grupni_smetnje = StanjeOp.PRESTANAK                # klasa: StanjeOp (enum vrijednost)
-        self.S_polje=S_polje
-    
-    def prespoji(self, nova_sabirnica):
-        # Control the SpojnoPolje to switch to the new busbar
-        self.S_polje.ukljuci()
-        
-        for rastavljac in self.s_rastavljaci:
-            if rastavljac.sabirnica == nova_sabirnica:
-                rastavljac.aktiviraj()
-            else:
-                rastavljac.deaktiviraj()
-        self.S_polje.iskljuci()
-        print(f"Dalekovodno polje prespojeno na {nova_sabirnica.id} preko spojnog polja.")
-        
-        
+
     def zastita_nije_u_proradi(self):
         for zastita in [self.dist_zastita, self.nads_zastita, self.apu]:
             if not zastita.nije_u_proradi():
@@ -291,13 +248,56 @@ class DalekovodnoPolje(Polje):                                  # naslijeđuje k
             print("Dalekovodno polje nije spremno")
             return False
         return True
+
+class Dalekovodno2Sab(DalekovodnoPolje):
+    def __init__(self):
+        super().__init__()
+
+        self.sabirnicaS1=Sabirnica(1)
+        self.s_rastavljacS1=RSabirnicki(self.sabirnicaS1)
+        self.sabirnicaS2=Sabirnica(2)
+        self.s_rastavljacS2=RSabirnicki(self.sabirnicaS2, Stanje.UKLJUČEN)
+        self.S_polje=SpojnoPolje(self.s_rastavljacS1, self.s_rastavljacS2)
         
+    def prespoji(self):
+        # Control the SpojnoPolje to switch to the new busbar
+        self.S_polje.ukljuci()
+        self.S_polje.prespoji()
+        self.S_polje.iskljuci()
+        if self.sabirnicaS1.stanje == Stanje.UKLJUČEN:
+            print("Spojeno na S1")
+        elif self.sabirnicaS2.stanje == Stanje.UKLJUČEN:
+            print("Spojeno na S2")
+
+        
+        
+class Dalekovodno1Sab(DalekovodnoPolje):
+    def __init__(self):
+        super().__init__()
+
+        self.sabirnica=Sabirnica()
+        self.s_rastavljac=RSabirnicki(self.sabirnica)
+    def imaju_napajanje(self):
+        for uredaj in [self.prekidac, self.i_rastavljac, self.u_rastavljac, self.s_rastavljac]:
+            if not uredaj.ima_napajanje():
+                print(f"{uredaj.__class__.__name__} nema napajanje.")
+                return False
+                
+        return True
+    def poznati_polozaji(self):
+        for uredaj in [self.prekidac, self.i_rastavljac, self.u_rastavljac, self.s_rastavljac]:
+            if not uredaj.nije_nepoznato():
+                print(f"{uredaj.__class__.__name__} je u nepoznatom stanju.")
+                return False
+            
+        return True
+
 
 
 
 class TPKoncar(Prekidac):                           # naslijeđuje klasu Prekidac 
-    def __init__(self, stanje, upravljanje, tlak):  # konstruktor
-        super().__init__(stanje)                    # konstruktor nad klase: Prekidac
+    def __init__(self):  # konstruktor
+        super().__init__()                    # konstruktor nad klase: Prekidac
         
         self.pad_tlaka_16b = StanjeOp.PRESTANAK    
 
@@ -305,7 +305,7 @@ class TPKoncar(Prekidac):                           # naslijeđuje klasu Prekida
         self.pad_tlaka_11b = StanjeOp.PRESTANAK
         self.apu_blokada = StanjeOp.PRESTANAK
         self.nesklad_polova_3p_isklop = StanjeOp.PRESTANAK
-        self.upravljanje = upravljanje
+        self.upravljanje = Upravljanje.DALJINSKO
     
     
     def daljinskoUpravljanje(self):
@@ -316,12 +316,9 @@ class TPKoncar(Prekidac):                           # naslijeđuje klasu Prekida
 
 
 class Dalekovod:
-    def __init__(self, D_polje1, D_polje2, initial_state=True):
-        if not isinstance(D_polje1, DalekovodnoPolje) or not isinstance(D_polje2, DalekovodnoPolje):
-            raise TypeError("Both D_polje1 and D_polje2 must be instances of DalekovodnoPolje")
-        self.D_polje1 = D_polje1
-        self.D_polje2 = D_polje2
-        self.ukljucen=initial_state
+    def __init__(self):
+        self.D_polje1 = Dalekovodno1Sab()
+        self.D_polje2 = Dalekovodno2Sab()
     
     
     def ukljuci(self):
@@ -334,7 +331,7 @@ class Dalekovod:
                 rastavljac.komanda(True)
             polje.i_rastavljac.komanda(True)
             polje.prekidac.komanda(True)
-        self.ukljucen=True
+        
         print("Dalekovod uključen")
 
     def iskljuci(self):
@@ -349,19 +346,22 @@ class Dalekovod:
             polje.u_rastavljac.komanda(True)
             
             
-        self.ukljucen=False   
+            
         print("Dalekovod isključen")
 
 class SpojnoPolje(Polje):                                      # naslijeđuje klasu Polje 
-    def __init__(self, prekidac, i_rastavljac, u_rastavljac, sabirnice):  # konstruktor
-        super().__init__(prekidac, i_rastavljac, u_rastavljac, sabirnice) # konstruktor nad klase: Polje
+    def __init__(self, s_rastavljacS1, s_rastavljacS2, stanje=Stanje.ISKLJUČEN):  # konstruktor
+        super().__init__() # konstruktor nad klase: Polje
         self.grupni_iskljucenje = StanjeOp.PRESTANAK           # klasa: StanjeOp (enum vrijednost) 
         self.grupni_upozorenje = StanjeOp.PRESTANAK            # klasa: StanjeOp (enum vrijednost)  
-        self.grupni_smetnje = StanjeOp.PRESTANAK               # klasa: StanjeOp (enum vrijednost)  
+        self.grupni_smetnje = StanjeOp.PRESTANAK               # klasa: StanjeOp (enum vrijednost)
+        self.stanje=stanje
+        self.s_rastavljacS1 = s_rastavljacS1
+        self.s_rastavljacS2 = s_rastavljacS2
 
     def ukljuci(self):
         # Turn on the switch
-        for rastavljac in self.s_rastavljaci:
+        for rastavljac in [self.s_rastavljacS1, self.s_rastavljacS2]:
                 rastavljac.aktiviraj()
         
         self.prekidac.komanda(True)
@@ -370,6 +370,29 @@ class SpojnoPolje(Polje):                                      # naslijeđuje kl
     def iskljuci(self):
         # Turn off everything when switching is done
         self.prekidac.komanda(False)
-        for rastavljač in self.s_rastavljaci:
-            rastavljač.deaktiviraj()
-
+        for rastavljac in [self.s_rastavljacS1, self.s_rastavljacS2]:
+            rastavljac.deaktiviraj()
+    
+    def prespoji(self):
+        if self.s_rastavljacS1.odredi_polozaj() == Stanje.UKLJUČEN and self.s_rastavljacS2.odredi_polozaj() == Stanje.ISKLJUČEN:
+            self.s_rastavljacS1.deaktiviraj()
+            self.s_rastavljacS2.aktiviraj()
+        else:
+            self.s_rastavljacS1.aktiviraj()
+            self.s_rastavljacS2.deaktiviraj()
+    def spremno(self):
+        if not self.imaju_napajanje():
+            print("Nemaju svi sklopni aparati napajanje. Spojno polje nije spremno")
+            return False
+        if not self.prekidac.dovoljnoSF6():
+            print("Razina plina SF6 je preniska. Spojno polje nije spremno.")
+            return False
+        if not self.prekidac.daljinskoUpravljanje():
+            print("Daljinsko upravljanje nije omogućeno. Polje nije spremno.")
+            return False
+        if not self.poznati_polozaji():
+            print("Jedan od sklopnih aparata je u nepoznatom položaju. Potrebno je poslati osoblje u rasklopno postrojenje")
+            print("Polje nije spremno")
+            return False
+        return True
+            
