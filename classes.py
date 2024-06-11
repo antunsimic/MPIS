@@ -129,17 +129,17 @@ class Polje:
         return True
     def spremno(self):
         if not self.imaju_napajanje():
-            print("Nemaju svi sklopni aparati napajanje. Dalekovodno polje nije spremno")
+            print("Nemaju svi sklopni aparati napajanje. Polje nije spremno")
             return False
         if not self.prekidac.dovoljnoSF6():
-            print("Razina plina SF6 je preniska. Dalekovodno polje nije spremno.")
+            print("Razina plina SF6 je preniska. Polje nije spremno.")
             return False
         if not self.prekidac.daljinskoUpravljanje():
-            print("Daljinsko upravljanje nije omogućeno. Dalekovodno polje nije spremno.")
+            print("Daljinsko upravljanje nije omogućeno. Polje nije spremno.")
             return False
         if not self.poznati_polozaji():
             print("Jedan od sklopnih aparata je u nepoznatom položaju. Potrebno je poslati osoblje u rasklopno postrojenje")
-            print("Dalekovodno polje nije spremno")
+            print("Polje nije spremno")
             return False
         return True
         
@@ -316,17 +316,40 @@ class TPKoncar(Prekidac):                           # naslijeđuje klasu Prekida
 
 
 class Dalekovod:
-    def __init__(self, D_polje1, D_polje2):
+    def __init__(self, D_polje1, D_polje2, initial_state=True):
         if not isinstance(D_polje1, DalekovodnoPolje) or not isinstance(D_polje2, DalekovodnoPolje):
             raise TypeError("Both D_polje1 and D_polje2 must be instances of DalekovodnoPolje")
         self.D_polje1 = D_polje1
         self.D_polje2 = D_polje2
+        self.ukljucen=initial_state
     
     
     def ukljuci(self):
+        for polje in [self.D_polje1, self.D_polje2]:
+            if not polje.spremno():
+                print("Stoga se dalekovod ne može uključiti.")
+                return
+            polje.u_rastavljac.komanda(False)
+            for rastavljac in polje.s_rastavljaci:
+                rastavljac.komanda(True)
+            polje.i_rastavljac.komanda(True)
+            polje.prekidac.komanda(True)
+        self.ukljucen=True
         print("Dalekovod uključen")
 
     def iskljuci(self):
+        for polje in [self.D_polje1, self.D_polje2]:
+            if not polje.spremno():
+                print("Stoga se dalekovod ne može isključiti.")
+                return
+            polje.prekidac.komanda(False)
+            for rastavljac in polje.s_rastavljaci:
+                rastavljac.komanda(False)
+            polje.i_rastavljac.komanda(False)
+            polje.u_rastavljac.komanda(True)
+            
+            
+        self.ukljucen=False   
         print("Dalekovod isključen")
 
 class SpojnoPolje(Polje):                                      # naslijeđuje klasu Polje 
