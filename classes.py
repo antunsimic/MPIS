@@ -380,15 +380,9 @@ class SpojnoPolje(Polje):                                      # naslijeđuje kl
     def iskljuci(self):
         # Turn off everything when switching is done
         self.prekidac.komanda(False)
-
+        self.s_rastavljacS1.komanda(False)
+        self.s_rastavljacS2.komanda(False)    
     
-    def prespoji(self, num):
-        if num==2:
-            self.s_rastavljacS1.deaktiviraj()
-            self.s_rastavljacS2.aktiviraj()
-        elif num==1:
-            self.s_rastavljacS1.aktiviraj()
-            self.s_rastavljacS2.deaktiviraj()
     def spremno(self):
         if not self.imaju_napajanje():
             print("Nemaju svi sklopni aparati napajanje. Spojno polje nije spremno")
@@ -404,8 +398,7 @@ class SpojnoPolje(Polje):                                      # naslijeđuje kl
             print("Polje nije spremno")
             return False
         return True
-        self.s_rastavljacS1.komanda(False)
-        self.s_rastavljacS2.komanda(False)    
+
 
 
 
