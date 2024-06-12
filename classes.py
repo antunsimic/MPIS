@@ -1,4 +1,6 @@
 from enum import Enum
+from abc import ABC
+import random
 
 class Stanje(Enum):
     MEĐUPOLOŽAJ = "međupoložaj"
@@ -41,7 +43,7 @@ class Sabirnica:
         print(f"Sabirnica {self.id} isključena.")
 
 
-class PrimarnaOprema:
+class PrimarnaOprema(ABC):
     def __init__(self, stanje=Stanje.UKLJUČEN):
         self.stanje = stanje
         self.napon=Napon() #ima napon
@@ -66,7 +68,7 @@ class PrimarnaOprema:
         return self.stanje in Stanje
     
 
-class Prekidac(PrimarnaOprema):
+class Prekidac(ABC, PrimarnaOprema):
     def __init__(self):
         super().__init()
     def dovoljnoSF6():
@@ -74,11 +76,11 @@ class Prekidac(PrimarnaOprema):
     def daljinskoUpravljanje():
         return True
 
-class Rastavljac(PrimarnaOprema):
+class Rastavljac(ABC, PrimarnaOprema):
     def __init__(self, stanje=Stanje.UKLJUČEN):
         super().__init(stanje)
 
-class Zastita:
+class Zastita(ABC):
   
     def nije_u_proradi(self):
         # Get all attributes of the instance
@@ -90,10 +92,13 @@ class Zastita:
     
 
 
-class Polje:
+class Polje(ABC):
     def __init__(self):
-
-        self.prekidac = Prekidac()
+        random_bool = random.choice([True, False])
+        if random_bool:
+            self.prekidac = LTB145D1()
+        else:
+            self.prekidac = TPKoncar()
         self.i_rastavljac = RIzlazni()
         self.u_rastavljac = RUzemljenja()
     def imaju_napajanje(self):
@@ -209,7 +214,7 @@ class RUzemljenja(Rastavljac):
 
 
 
-class DalekovodnoPolje(Polje):                                  # naslijeđuje klasu Polje
+class DalekovodnoPolje(ABC, Polje):                                  # naslijeđuje klasu Polje
     def __init__(self): # konstruktor
         super().__init__()  # konstruktor nad klase: Polje
    
@@ -396,3 +401,6 @@ class SpojnoPolje(Polje):                                      # naslijeđuje kl
             return False
         return True
             
+
+
+
