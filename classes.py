@@ -52,7 +52,7 @@ class PrimarnaOprema(ABC):
         return self.napon.is_powered()
     
     def nije_nepoznato(self):
-        return self.stanje in Stanje
+        return isinstance(self.stanje, Stanje)
     
 
 class Prekidac(PrimarnaOprema, ABC):
@@ -245,6 +245,10 @@ class Dalekovodno2Sab(DalekovodnoPolje):
         
     def prespoji(self, num):
         # Control the SpojnoPolje to switch to the new busbar
+        if not self.S_polje.spremno():
+            print("Spojno polje nije spremno")
+            print("Prespajanje neuspješno")
+            return
         self.S_polje.ukljuci()
         
         #prespajanje
@@ -381,8 +385,9 @@ class SpojnoPolje(Polje):                                      # naslijeđuje kl
         # Turn off everything when switching is done
         self.prekidac.komanda(False)
         self.s_rastavljacS1.komanda(False)
-        self.s_rastavljacS2.komanda(False)    
+        self.s_rastavljacS2.komanda(False)  
     
+            
     def spremno(self):
         if not self.imaju_napajanje():
             print("Nemaju svi sklopni aparati napajanje. Spojno polje nije spremno")
@@ -399,6 +404,4 @@ class SpojnoPolje(Polje):                                      # naslijeđuje kl
             return False
         return True
 
-
-
-
+        
