@@ -68,7 +68,7 @@ class PrimarnaOprema(ABC):
         return self.stanje in Stanje
     
 
-class Prekidac(ABC, PrimarnaOprema):
+class Prekidac(PrimarnaOprema, ABC):
     def __init__(self):
         super().__init()
     def dovoljnoSF6():
@@ -76,7 +76,7 @@ class Prekidac(ABC, PrimarnaOprema):
     def daljinskoUpravljanje():
         return True
 
-class Rastavljac(ABC, PrimarnaOprema):
+class Rastavljac(PrimarnaOprema, ABC):
     def __init__(self, stanje=Stanje.UKLJUČEN):
         super().__init(stanje)
 
@@ -214,7 +214,7 @@ class RUzemljenja(Rastavljac):
 
 
 
-class DalekovodnoPolje(ABC, Polje):                                  # naslijeđuje klasu Polje
+class DalekovodnoPolje(Polje, ABC):                                  # naslijeđuje klasu Polje
     def __init__(self): # konstruktor
         super().__init__()  # konstruktor nad klase: Polje
    
@@ -255,13 +255,19 @@ class DalekovodnoPolje(ABC, Polje):                                  # naslijeđ
         return True
 
 class Dalekovodno2Sab(DalekovodnoPolje):
-    def __init__(self):
+    def __init__(self, num=2):
         super().__init__()
 
         self.sabirnicaS1=Sabirnica(1)
         self.s_rastavljacS1=RSabirnicki(self.sabirnicaS1)
         self.sabirnicaS2=Sabirnica(2)
-        self.s_rastavljacS2=RSabirnicki(self.sabirnicaS2, Stanje.UKLJUČEN)
+        self.s_rastavljacS2=RSabirnicki(self.sabirnicaS2)
+        match num:
+            case 1:
+                self.s_rastavljacS1.aktiviraj()
+            case 2:
+                self.s_rastavljacS2.aktiviraj()
+        
         self.S_polje=SpojnoPolje(self.s_rastavljacS1, self.s_rastavljacS2)
         
     def prespoji(self):
@@ -321,9 +327,9 @@ class TPKoncar(Prekidac):                           # naslijeđuje klasu Prekida
 
 
 class Dalekovod:
-    def __init__(self):
+    def __init__(self, num=2):
         self.D_polje1 = Dalekovodno1Sab()
-        self.D_polje2 = Dalekovodno2Sab()
+        self.D_polje2 = Dalekovodno2Sab(num)
     
     
     def ukljuci(self):
@@ -401,6 +407,5 @@ class SpojnoPolje(Polje):                                      # naslijeđuje kl
             return False
         return True
             
-
 
 
