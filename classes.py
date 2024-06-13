@@ -23,8 +23,8 @@ class Napon:
 
     def set_power(self, state):
         self.powered = state
-        print("Sustav napajanja je ", "uključen." if state else "isključen.")
-
+        # print("Sustav napajanja je ", "uključen." if state else "isključen.")   Pošto se uključivanjem i isključivanjem prekidaća mjenja napajanje uređaja
+                                                                                # mi to napajanje mjenjamo kroz for petlju za svaki uredaj pa da se ne ponavlja poruka
     def is_powered(self):
         return self.powered
 
@@ -43,7 +43,6 @@ class PrimarnaOprema(ABC):
             return None
         self.stanje= Stanje.UKLJUČEN if ukljuci else Stanje.ISKLJUČEN
         return self.stanje
-
     
     def odredi_polozaj(self):
         return self.stanje
@@ -62,10 +61,13 @@ class Prekidac(PrimarnaOprema, ABC):
         return True
     def daljinskoUpravljanje(self):
         return True
+    
 
 class Rastavljac(PrimarnaOprema, ABC):
     def __init__(self, stanje=Stanje.UKLJUČEN):
         super().__init__(stanje)
+        self.Prekidac = Prekidac()
+    
 
 class Zastita(ABC):
   
@@ -102,13 +104,7 @@ class Polje(ABC):
                     return False
             
             return True
-
     
-
-                
-        
-
-
 class LTB145D1(Prekidac):                   # naslijeđuje klasu Prekidac
     def __init__(self):                     # konstruktor
         super().__init__()                    # konstruktor nad klase: Prekidac
@@ -206,7 +202,63 @@ class DalekovodnoPolje(Polje, ABC):                                  # naslijeđ
                 return False
         return True
     
-        
+#Upravljanje uređajima ovdje i za sabirničke rastavljače u posebnim dp za 1 i 2 sabirnice
+    def ukljuci_prekidac(self):
+        self.prekidac.komanda(True)
+        print("Prekidac uključen, svi uredaji imaju napajanje")
+
+    def iskljuci_prekidac(self):
+        self.prekidac.komanda(False)
+        print("Prekidac isključen, nema napajanja")
+
+    def interakcija_prekidac(self):
+        if self.prekidac.odredi_polozaj() == Stanje.UKLJUČEN:
+            self.iskljuci_prekidac()
+        else:   
+            self.ukljuci_prekidac()
+
+
+    def ukljuci_i_rastavljac(self):
+        if self.prekidac.odredi_polozaj() == Stanje.UKLJUČEN:
+            print("Prekidac je uključen. I rastavljač se ne može " "uključiti." if self.i_rastavljac.odredi_polozaj() == Stanje.ISKLJUČEN else "isključiti.")
+            return
+        self.i_rastavljac.komanda(True)
+        print("Izlazni rastavljac ukljucen")
+
+    def iskljuci_i_rastavljac(self):
+        if self.prekidac.odredi_polozaj() == Stanje.UKLJUČEN:
+            print("Prekidac je uključen. I rastavljač se ne može " "uključiti." if self.i_rastavljac.odredi_polozaj() == Stanje.ISKLJUČEN else "isključiti.")
+            return
+        self.i_rastavljac.komanda(False)
+        print("Izlazni rastavljac iskljucen")
+
+    def interakcija_i_rastavljac(self):
+        if self.i_rastavljac.odredi_polozaj() == Stanje.UKLJUČEN:
+            self.iskljuci_i_rastavljac()
+        else:   
+            self.ukljuci_i_rastavljac()
+
+
+    def ukljuci_u_rastavljac(self):
+        if self.prekidac.odredi_polozaj() == Stanje.UKLJUČEN:
+            print("Prekidac je uključen. U rastavljač se ne može " "uključiti." if self.u_rastavljac.odredi_polozaj() == Stanje.ISKLJUČEN else "isključiti.")
+            return
+        self.u_rastavljac.komanda(True)
+        print("Izlazni rastavljac ukljucen")
+
+    def iskljuci_u_rastavljac(self):
+        if self.prekidac.odredi_polozaj() == Stanje.UKLJUČEN:
+            print("Prekidac je uključen. U rastavljač se ne može " "uključiti." if self.u_rastavljac.odredi_polozaj() == Stanje.ISKLJUČEN else "isključiti.")
+            return
+        self.u_rastavljac.komanda(False)
+        print("Izlazni rastavljac iskljucen")
+
+    def interakcija_u_rastavljac(self):
+        if self.u_rastavljac.odredi_polozaj() == Stanje.UKLJUČEN:
+            self.iskljuci_u_rastavljac()
+        else:   
+            self.ukljuci_u_rastavljac()
+
     
     def spremno(self):
         if not self.zastita_nije_u_proradi():
@@ -263,6 +315,28 @@ class Dalekovodno2Sab(DalekovodnoPolje):
         self.S_polje.iskljuci()
         print("Spojeno na S", num)
 
+    def ukljuci_s_rastavljac(self, num):
+        if self.prekidac.odredi_polozaj() == Stanje.UKLJUČEN:
+            print("Prekidac je uključen. S_rastavljač se ne može uključiti.")
+            return
+        match num:
+            case 1:
+                self.s_rastavljacS1.komanda(True)
+            case 2:
+                self.s_rastavljacS2.komanda(True)
+        print(f"S_rastavljac {num} ukljucen")
+
+    def iskljuci_s_rastavljac(self, num):
+        if self.prekidac.odredi_polozaj() == Stanje.UKLJUČEN:
+            print("Prekidac je uključen. S_rastavljač se ne može isključiti.")
+            return
+        match num:
+            case 1:
+                self.s_rastavljacS1.komanda(False)
+            case 2:
+                self.s_rastavljacS2.komanda(False)
+        print(f"S_rastavljac {num} iskljucen")
+
         
         
 class Dalekovodno1Sab(DalekovodnoPolje):
@@ -284,6 +358,24 @@ class Dalekovodno1Sab(DalekovodnoPolje):
                 return False
             
         return True
+    
+    def ukljuci_s_rastavljac(self):
+        if self.prekidac.odredi_polozaj() == Stanje.UKLJUČEN:
+            print("Prekidac je uključen. S_rastavljač se ne može uključiti.")
+            return
+    
+        self.s_rastavljac.komanda(True)
+   
+        print(f"S_rastavljac ukljucen")
+
+    def iskljuci_s_rastavljac(self):
+        if self.prekidac.odredi_polozaj() == Stanje.UKLJUČEN:
+            print("Prekidac je uključen. S_rastavljač se ne može uključiti.")
+            return
+    
+        self.s_rastavljac.komanda(False)
+   
+        print(f"S_rastavljac ukljucen")
 
 
 
@@ -403,5 +495,15 @@ class SpojnoPolje(Polje):                                      # naslijeđuje kl
             print("Polje nije spremno")
             return False
         return True
-
         
+class Line:
+    def __init__(self, x0, y0, x1, y1, dalekovod, width):
+        self.x0 = x0
+        self.y0 = y0
+        self.x1 = x1
+        self.y1 = y1
+        self.width = width
+        self.dalekovod = dalekovod
+
+    def draw(self, canvas):
+        canvas.create_line(self.x0, self.y0, self.x1, self.y1, width=self.width, fill="black")
