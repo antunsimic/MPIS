@@ -220,14 +220,14 @@ class DalekovodnoPolje(Polje, ABC):                                  # naslijeđ
 
     def ukljuci_i_rastavljac(self):
         if self.prekidac.odredi_polozaj() == Stanje.UKLJUČEN:
-            print("Prekidac je uključen. I rastavljač se ne može " "uključiti." if self.i_rastavljac.odredi_polozaj() == Stanje.ISKLJUČEN else "isključiti.")
+            print("Prekidac je uključen. I rastavljač se ne može ", "uključiti." if self.i_rastavljac.odredi_polozaj() == Stanje.ISKLJUČEN else "isključiti.")
             return
         self.i_rastavljac.komanda(True)
         print("Izlazni rastavljac ukljucen")
 
     def iskljuci_i_rastavljac(self):
         if self.prekidac.odredi_polozaj() == Stanje.UKLJUČEN:
-            print("Prekidac je uključen. I rastavljač se ne može " "uključiti." if self.i_rastavljac.odredi_polozaj() == Stanje.ISKLJUČEN else "isključiti.")
+            print("Prekidac je uključen. I rastavljač se ne može ", "uključiti." if self.i_rastavljac.odredi_polozaj() == Stanje.ISKLJUČEN else "isključiti.")
             return
         self.i_rastavljac.komanda(False)
         print("Izlazni rastavljac iskljucen")
@@ -241,14 +241,14 @@ class DalekovodnoPolje(Polje, ABC):                                  # naslijeđ
 
     def ukljuci_u_rastavljac(self):
         if self.prekidac.odredi_polozaj() == Stanje.UKLJUČEN:
-            print("Prekidac je uključen. U rastavljač se ne može " "uključiti." if self.u_rastavljac.odredi_polozaj() == Stanje.ISKLJUČEN else "isključiti.")
+            print("Prekidac je uključen. U rastavljač se ne može ", "uključiti." if self.u_rastavljac.odredi_polozaj() == Stanje.ISKLJUČEN else "isključiti.")
             return
         self.u_rastavljac.komanda(True)
         print("Izlazni rastavljac ukljucen")
 
     def iskljuci_u_rastavljac(self):
         if self.prekidac.odredi_polozaj() == Stanje.UKLJUČEN:
-            print("Prekidac je uključen. U rastavljač se ne može " "uključiti." if self.u_rastavljac.odredi_polozaj() == Stanje.ISKLJUČEN else "isključiti.")
+            print("Prekidac je uključen. U rastavljač se ne može ", "uključiti." if self.u_rastavljac.odredi_polozaj() == Stanje.ISKLJUČEN else "isključiti.")
             return
         self.u_rastavljac.komanda(False)
         print("Izlazni rastavljac iskljucen")
@@ -497,13 +497,14 @@ class SpojnoPolje(Polje):                                      # naslijeđuje kl
         return True
         
 class Line:
-    def __init__(self, x0, y0, x1, y1, dalekovod, width):
+    def __init__(self, x0, y0, x1, y1, dalekovod, width, color):
         self.x0 = x0
         self.y0 = y0
         self.x1 = x1
         self.y1 = y1
         self.width = width
         self.dalekovod = dalekovod
+        self.color = color
 
     def draw(self, canvas):
-        canvas.create_line(self.x0, self.y0, self.x1, self.y1, width=self.width, fill="black")
+        canvas.create_line(self.x0, self.y0, self.x1, self.y1, width=self.width, fill=self.color)
