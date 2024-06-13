@@ -1,6 +1,5 @@
 from classes import *
 
-
 #inicijalno
 
 dalekovod = Dalekovod(2)
@@ -28,4 +27,5 @@ def scenarij5():
 
 def scenarij6():
     dalekovod.D_polje2.prespoji(1)
-    
+
+
