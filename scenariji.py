@@ -3,7 +3,7 @@ from classes import *
 
 #inicijalno
 
-dalekovod = Dalekovod(2)
+dalekovod = Dalekovod()
 
 
 def scenarij1():
