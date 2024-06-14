@@ -202,6 +202,7 @@ class Polje(ABC):
             print("Prekidač nije isključen, stoga se sabirnički rastavljač ne može isključiti")
             return
 
+
         match num:
             case 1:
                 self.s_rastavljacS1.komanda(False)
@@ -244,6 +245,19 @@ class Polje(ABC):
         else:   
             self.ukljuci_sabirnicki_rastavljac(2)
 
+
+        match num:
+            case 1:
+                self.s_rastavljacS1.komanda(False)
+            case 2:
+                self.s_rastavljacS2.komanda(False)
+            case _:
+                print("Nije nađen taj sabirnički rastavljač")
+    
+    def iskljuci_rastavljac_uzemljenja(self):
+        if not self.spreman_uredaj(self.u_rastavljac):
+            return
+        self.u_rastavljac.komanda(False)
 
         
     
@@ -582,11 +596,13 @@ class Dalekovodno1Sab(DalekovodnoPolje):
 
         self.s_rastavljac.komanda(False)
 
+
     def interakcija_s_rastavljac(self):
         if self.s_rastavljac.odredi_polozaj() == Stanje.UKLJUČEN:
             self.iskljuci_sabirnicki_rastavljac()
         else:   
             self.ukljuci_sabirnicki_rastavljac()
+
     
     
 
@@ -780,6 +796,7 @@ class SpojnoPolje(Polje):                                      # naslijeđuje kl
             print("Stanje uređaja je nepoznato. Potrebno je poslati osoblje u rasklopno postrojenje. Uređaj se ne može uključiti / isključiti")
             return False
         return True
+
     
 class Line:
     def __init__(self, x0, y0, x1, y1, dalekovod, width):
@@ -792,3 +809,4 @@ class Line:
 
     def draw(self, canvas):
         canvas.create_line(self.x0, self.y0, self.x1, self.y1, width=self.width)
+
