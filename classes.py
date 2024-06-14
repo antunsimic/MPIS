@@ -336,6 +336,17 @@ class Dalekovodno2Sab(DalekovodnoPolje):
             case 2:
                 self.s_rastavljacS2.komanda(False)
         print(f"S_rastavljac {num} iskljucen")
+        
+    def interakcija_s1_rastavljac(self):
+        if self.s_rastavljacS1.odredi_polozaj() == Stanje.UKLJUČEN:
+            self.iskljuci_s_rastavljac(1)
+        else:   
+            self.ukljuci_s_rastavljac(1)
+    def interakcija_s2_rastavljac(self):
+        if self.s_rastavljacS2.odredi_polozaj() == Stanje.UKLJUČEN:
+            self.iskljuci_s_rastavljac(2)
+        else:   
+            self.ukljuci_s_rastavljac(2)
 
         
         
@@ -365,17 +376,20 @@ class Dalekovodno1Sab(DalekovodnoPolje):
             return
     
         self.s_rastavljac.komanda(True)
-   
         print(f"S_rastavljac ukljucen")
 
     def iskljuci_s_rastavljac(self):
         if self.prekidac.odredi_polozaj() == Stanje.UKLJUČEN:
-            print("Prekidac je uključen. S_rastavljač se ne može uključiti.")
+            print("Prekidac je uključen. S_rastavljač se ne može isključiti.")
             return
-    
         self.s_rastavljac.komanda(False)
-   
-        print(f"S_rastavljac ukljucen")
+        print(f"S_rastavljac iskljucen")
+        
+    def interakcija_s_rastavljac(self):
+        if self.s_rastavljac.odredi_polozaj() == Stanje.UKLJUČEN:
+            self.iskljuci_s_rastavljac()
+        else:   
+            self.ukljuci_s_rastavljac()
 
 
 
@@ -497,14 +511,13 @@ class SpojnoPolje(Polje):                                      # naslijeđuje kl
         return True
         
 class Line:
-    def __init__(self, x0, y0, x1, y1, dalekovod, width, color):
+    def __init__(self, x0, y0, x1, y1, dalekovod, width):
         self.x0 = x0
         self.y0 = y0
         self.x1 = x1
         self.y1 = y1
         self.width = width
         self.dalekovod = dalekovod
-        self.color = color
 
     def draw(self, canvas):
-        canvas.create_line(self.x0, self.y0, self.x1, self.y1, width=self.width, fill=self.color)
+        canvas.create_line(self.x0, self.y0, self.x1, self.y1, width=self.width)
