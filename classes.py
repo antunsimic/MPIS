@@ -57,6 +57,7 @@ class PrimarnaOprema(ABC):
             print(f"{self.__class__.__name__} se ne može uključiti / isključiti, nema napajanja.")
             return None
         self.stanje= Stanje.UKLJUČEN if ukljuci else Stanje.ISKLJUČEN
+        print(self.__class__.__name__, "uključen" if ukljuci else "isključen")
         return self.stanje
     
     def odredi_polozaj(self):
@@ -124,6 +125,98 @@ class Polje(ABC):
                     return False
             
             return True
+    def ukljuci_prekidac(self):
+        if not self.spreman_uredaj(self.prekidac):
+            return
+        if self.u_rastavljac.odredi_polozaj() != Stanje.ISKLJUČEN:
+            print("Rastavljač uzemljenja nije isključen, stoga se prekidač ne može uključiti")
+            return
+        if self.s_rastavljacS2.odredi_polozaj() != Stanje.UKLJUČEN and self.s_rastavljacS1.odredi_polozaj() != Stanje.UKLJUČEN:
+            print("Sabirnički rastavljač nije uključen, stoga se prekidač ne može uključiti")
+            return
+        if self.i_rastavljac.odredi_polozaj() != Stanje.UKLJUČEN:
+            print("Linijski rastavljač nije uključen, stoga se prekidač ne može uključiti")
+            return
+        self.prekidac.komanda(True)
+        
+    def ukljuci_linijski_rastavljac(self):
+        if not self.spreman_uredaj(self.i_rastavljac):
+            return
+        if self.u_rastavljac.odredi_polozaj() != Stanje.ISKLJUČEN:
+            print("Rastavljač uzemljenja nije isključen, stoga se linijski rastavljač ne može uključiti")
+            return
+
+        self.i_rastavljac.komanda(True)
+        
+    def ukljuci_sabirnicki_rastavljac(self, num):
+        if not self.spreman_uredaj(self.s_rastavljacS1) and num==1:
+            return
+        if not self.spreman_uredaj(self.s_rastavljacS2) and num==2:
+            return
+        
+        if self.u_rastavljac.odredi_polozaj() != Stanje.ISKLJUČEN:
+            print("Rastavljač uzemljenja nije isključen, stoga se sabirnički rastavljač ne može uključiti")
+            return
+
+        match num:
+            case 1:
+                self.s_rastavljacS1.komanda(True)
+            case 2:
+                self.s_rastavljacS2.komanda(True)
+            case _:
+                print("Nije nađen taj sabirnički rastavljač")
+    
+    def ukljuci_rastavljac_uzemljenja(self):
+        if not self.spreman_uredaj(self.u_rastavljac):
+            return
+        if self.prekidac.odredi_polozaj() != Stanje.ISKLJUČEN:
+            print("Prekidač nije isključen, stoga se rastavljač za uzemljenje ne može uključiti")
+            return
+        if self.s_rastavljacS1.odredi_polozaj() != Stanje.ISKLJUČEN or self.s_rastavljacS2.odredi_polozaj() != Stanje.ISKLJUČEN:
+            print("Jedan ili oba sabirnička rastavljača nisu isključena, stoga se rastavljač za uzemljenje ne može uključiti")
+            return
+        if self.i_rastavljac.odredi_polozaj() != Stanje.ISKLJUČEN:
+            print("Linijski rastavljač nije isključen, stoga se rastavljač za uzemljenje ne može uključiti")
+            return
+        self.u_rastavljac.komanda(True)
+    
+    def iskljuci_prekidac(self):
+        if not self.spreman_uredaj(self.prekidac):
+            return
+        self.prekidac.komanda(False)
+        
+    def iskljuci_linijski_rastavljac(self):
+        if not self.spreman_uredaj(self.i_rastavljac):
+            return
+        if self.prekidac.odredi_polozaj() != Stanje.ISKLJUČEN:
+            print("Prekidač nije isključen, stoga se linijski rastavljač ne može isključiti")
+            return
+        self.i_rastavljac.komanda(False)
+        
+    def iskljuci_sabirnicki_rastavljac(self, num):
+        if not self.spreman_uredaj(self.s_rastavljacS1) and num==1:
+            return
+        if not self.spreman_uredaj(self.s_rastavljacS2) and num==2:
+            return
+        if self.prekidac.odredi_polozaj() != Stanje.ISKLJUČEN:
+            print("Prekidač nije isključen, stoga se sabirnički rastavljač ne može isključiti")
+            return
+
+        match num:
+            case 1:
+                self.s_rastavljacS1.komanda(False)
+            case 2:
+                self.s_rastavljacS2.komanda(False)
+            case _:
+                print("Nije nađen taj sabirnički rastavljač")
+    
+    def iskljuci_rastavljac_uzemljenja(self):
+        if not self.spreman_uredaj(self.u_rastavljac):
+            return
+        self.u_rastavljac.komanda(False)
+
+
+        
     
 class LTB145D1(Prekidac):                   # naslijeđuje klasu Prekidac
     def __init__(self, polje):                     # konstruktor
@@ -233,6 +326,8 @@ class MjerniPretvornik:
         self.radna_energija = radna_energija
         self.jalova_snaga = jalova_snaga
         self.polje=polje
+        
+        
     def get_state_info(self):
         # Create a dictionary to store the state information
         state_info = {
@@ -243,9 +338,7 @@ class MjerniPretvornik:
      
         return state_info
        
-
-
-
+        
 
 class RSabirnicki(Rastavljac):  # naslijeđuje klasu Rastavljac
     def __init__(self, sabirnica, polje):
@@ -309,50 +402,11 @@ class DalekovodnoPolje(Polje, ABC):                                  # naslijeđ
         for zastita in [self.dist_zastita, self.nads_zastita, self.apu]:
             if not zastita.nije_u_proradi():
                 print(f"{zastita.__class__.__name__} je u proradi.")
+                self.prekidac.komanda(False)
                 return False
         return True
     
-#Upravljanje uređajima ovdje i za sabirničke rastavljače u posebnim dp za 1 i 2 sabirnice
-    def ukljuci_prekidac(self):
-        self.prekidac.komanda(True)
-        for uredaj in [self.i_rastavljac, self.u_rastavljac, self.s_rastavljacS1, self.s_rastavljacS2]:
-            uredaj.set_power(True)
-            
-        print("Prekidac uključen, svi uredaji imaju napajanje")
 
-    def iskljuci_prekidac(self):
-        self.prekidac.komanda(False)
-        for uredaj in [self.i_rastavljac, self.u_rastavljac, self.s_rastavljacS1, self.s_rastavljacS2]:
-            uredaj.set_power(False)
-        print("Prekidac isključen, nema napajanja")
-
-    def ukljuci_i_rastavljac(self):
-        if self.prekidac.odredi_polozaj() == Stanje.UKLJUČEN:
-            print("Prekidac je uključen. I rastavljač se ne može uključiti.")
-            return
-        self.i_rastavljac.komanda(True)
-        print("Izlazni rastavljac ukljucen")
-
-    def iskljuci_i_rastavljac(self):
-        if self.prekidac.odredi_polozaj() == Stanje.UKLJUČEN:
-            print("Prekidac je uključen. I rastavljač se ne može uključiti.")
-            return
-        self.i_rastavljac.komanda(False)
-        print("Izlazni rastavljac iskljucen")
-
-    def ukljuci_u_rastavljac(self):
-        if self.prekidac.odredi_polozaj() == Stanje.UKLJUČEN:
-            print("Prekidac je uključen. I rastavljač se ne može uključiti.")
-            return
-        self.u_rastavljac.komanda(True)
-        print("Izlazni rastavljac ukljucen")
-
-    def iskljuci_u_rastavljac(self):
-        if self.prekidac.odredi_polozaj() == Stanje.UKLJUČEN:
-            print("Prekidac je uključen. I rastavljač se ne može uključiti.")
-            return
-        self.u_rastavljac.komanda(False)
-        print("Izlazni rastavljac iskljucen")
 
     
     def spremno(self):
@@ -371,6 +425,24 @@ class DalekovodnoPolje(Polje, ABC):                                  # naslijeđ
         if not self.poznati_polozaji():
             print("Jedan od sklopnih aparata je u nepoznatom položaju. Potrebno je poslati osoblje u rasklopno postrojenje")
             print("Dalekovodno polje nije spremno")
+            return False
+        return True
+    
+    def spreman_uredaj(self, uredaj):
+        if not self.zastita_nije_u_proradi():
+            print("Zašita je u proradi. Uređaj se ne može uključiti / isključiti.")
+            return False
+        if not uredaj.ima_napajanje():
+            print("Uređaj nema napajanje. Stoga se ne može uključiti / isključiti")
+            return False
+        if isinstance(uredaj, Prekidac) and not uredaj.dovoljnoSF6():
+            print("Razina plina SF6 je preniska. Prekidač se ne može uključiti / isključiti")
+            return False
+        if isinstance(uredaj, Prekidac) and not uredaj.daljinskoUpravljanje():
+            print("Daljinsko upravljanje nije omogućeno. Prekidač se ne može uključiti / isključiti")
+            return False
+        if not uredaj.nije_nepoznato():
+            print("Stanje uređaja je nepoznato. Potrebno je poslati osoblje u rasklopno postrojenje. Uređaj se ne može uključiti / isključiti")
             return False
         return True
 
@@ -413,30 +485,10 @@ class Dalekovodno2Sab(DalekovodnoPolje):
         self.representation = "TS_D1_110kV DV_D1_S" + str(num)
         self.S_polje.iskljuci()
         print("Spojeno na S", num)
-
-    def ukljuci_s_rastavljac(self, num):
-        if self.prekidac.odredi_polozaj() == Stanje.UKLJUČEN:
-            print("Prekidac je uključen. S_rastavljač se ne može uključiti.")
-            return
-        match num:
-            case 1:
-                self.s_rastavljacS1.komanda(True)
-            case 2:
-                self.s_rastavljacS2.komanda(True)
-        print(f"S_rastavljac {num} ukljucen")
-
-    def iskljuci_s_rastavljac(self, num):
-        if self.prekidac.odredi_polozaj() == Stanje.UKLJUČEN:
-            print("Prekidac je uključen. S_rastavljač se ne može uključiti.")
-            return
-        match num:
-            case 1:
-                self.s_rastavljacS1.komanda(False)
-            case 2:
-                self.s_rastavljacS2.komanda(False)
-        print(f"S_rastavljac {num} iskljucen")
-
         
+
+
+
         
 class Dalekovodno1Sab(DalekovodnoPolje):
     def __init__(self):
@@ -457,6 +509,51 @@ class Dalekovodno1Sab(DalekovodnoPolje):
                 return False
             
         return True
+    
+    def ukljuci_prekidac(self):
+        if self.u_rastavljac.odredi_polozaj() != Stanje.ISKLJUČEN:
+            print("Rastavljač uzemljenja nije isključen, stoga se prekidač ne može uključiti")
+            return
+        if self.s_rastavljac.odredi_polozaj() != Stanje.UKLJUČEN:
+            print("Sabirnički rastavljač nije uključen, stoga se prekidač ne može uključiti")
+            return
+        if self.i_rastavljac.odredi_polozaj() != Stanje.UKLJUČEN:
+            print("Linijski rastavljač nije uključen, stoga se prekidač ne može uključiti")
+            return
+        self.prekidac.komanda(True)
+        
+        
+    def ukljuci_sabirnicki_rastavljac(self):
+        if self.u_rastavljac.odredi_polozaj() != Stanje.ISKLJUČEN:
+            print("Rastavljač uzemljenja nije isključen, stoga se prekidač ne može uključiti")
+            return
+
+        self.s_rastavljac.komanda(True)
+
+
+    
+    def ukljuci_rastavljac_uzemljenja(self):
+        if self.prekidac.odredi_polozaj() != Stanje.ISKLJUČEN:
+            print("Prekidač nije isključen, stoga se rastavljač za uzemljenje ne može uključiti")
+            return
+        if self.s_rastavljac.odredi_polozaj() != Stanje.ISKLJUČEN:
+            print("Sabirnički rastavljač nije isključen, stoga se rastavljač za uzemljenje ne može uključiti")
+            return
+        if self.i_rastavljac.odredi_polozaj() != Stanje.ISKLJUČEN:
+            print("Linijski rastavljač nije isključen, stoga se rastavljač za uzemljenje ne može uključiti")
+            return
+        self.u_rastavljac.komanda(True)
+    
+        
+        
+    def iskljuci_sabirnicki_rastavljac(self):
+        if self.prekidac.odredi_polozaj() != Stanje.ISKLJUČEN:
+            print("Prekidač nije isključen, stoga se sabirnički rastavljač ne može isključiti")
+            return
+
+        self.s_rastavljac.komanda(False)
+
+    
     
 
 
@@ -505,7 +602,6 @@ class Dalekovod:
         for polje in [self.D_polje1, self.D_polje2]:
             if not polje.spremno():
                 print("Stoga se dalekovod ne može uključiti.")
-                polje.prekidac.komanda(False)
                 return
         self.D_polje1.u_rastavljac.komanda(False)
         self.D_polje2.u_rastavljac.komanda(False)
@@ -531,7 +627,6 @@ class Dalekovod:
         for polje in [self.D_polje1, self.D_polje2]:
             if not polje.spremno():
                 print("Stoga se dalekovod ne može isključiti.")
-                polje.prekidac.komanda(False)
                 return
         #isključiti prekidače s obje strane
         self.D_polje1.prekidac.komanda(False)
@@ -636,31 +731,19 @@ class SpojnoPolje(Polje):                                      # naslijeđuje kl
             print("Polje nije spremno")
             return False
         return True
-
-        
     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    def spreman_uredaj(self, uredaj):
+        if not uredaj.ima_napajanje():
+            print("Uređaj nema napajanje. Stoga se ne može uključiti / isključiti")
+            return False
+        if isinstance(uredaj, Prekidac) and not uredaj.dovoljnoSF6():
+            print("Razina plina SF6 je preniska. Prekidač se ne može uključiti / isključiti")
+            return False
+        if isinstance(uredaj, Prekidac) and not uredaj.daljinskoUpravljanje():
+            print("Daljinsko upravljanje nije omogućeno. Prekidač se ne može uključiti / isključiti")
+            return False
+        if not uredaj.nije_nepoznato():
+            print("Stanje uređaja je nepoznato. Potrebno je poslati osoblje u rasklopno postrojenje. Uređaj se ne može uključiti / isključiti")
+            return False
+        return True
+        
