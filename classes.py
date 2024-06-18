@@ -111,6 +111,8 @@ class Polje(ABC):
             self.prekidac = TPKoncar(self)
         self.i_rastavljac = RIzlazni(self)
         self.u_rastavljac = RUzemljenja(self)
+        self.s_rastavljacS1 = RSabirnicki(1, self)
+        self.s_rastavljacS2 = RSabirnicki(2, self)
     def imaju_napajanje(self):
             for uredaj in [self.prekidac, self.i_rastavljac, self.u_rastavljac, self.s_rastavljacS1, self.s_rastavljacS2]:
                 if not uredaj.ima_napajanje():
@@ -799,15 +801,5 @@ class SpojnoPolje(Polje):                                      # naslijeđuje kl
         return True
 
     
-class Line:
-    def __init__(self, x0, y0, x1, y1, dalekovod, width):
-        self.x0 = x0
-        self.y0 = y0
-        self.x1 = x1
-        self.y1 = y1
-        self.width = width
-        self.dalekovod = dalekovod
 
-    def draw(self, canvas):
-        canvas.create_line(self.x0, self.y0, self.x1, self.y1, width=self.width)
 
