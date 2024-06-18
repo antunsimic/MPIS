@@ -2,7 +2,7 @@ import tkinter as tk
 from classes import *
 
 dalekovod = Dalekovod()
-dalekovod.D_polje2.prespoji(2) # Samo za testiranje s razlicitim sabirnicama
+#dalekovod.D_polje2.prespoji(2) # Samo za testiranje s razlicitim sabirnicama
 
 def draw_point(canvas, x, y, color='black', radius=3, fill="black"):
     return canvas.create_oval(x - radius, y - radius, x + radius, y + radius, fill=fill, outline=color)
@@ -14,7 +14,7 @@ def draw_text(canvas, x, y, text):
     return canvas.create_text(x, y, text=text)
 
 def on_canvas_click(event):
-    draw_point(canvas, event.x, event.y)
+    #draw_point(canvas, event.x, event.y)
     print(f"Mouse clicked at ({event.x}, {event.y})")
 
 def button_click():

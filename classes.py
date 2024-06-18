@@ -141,25 +141,27 @@ class Polje(ABC):
             return
         self.prekidac.komanda(True)
         
-    def ukljuci_linijski_rastavljac(self):
-        if not self.spreman_uredaj(self.i_rastavljac):
-            return
-        if self.u_rastavljac.odredi_polozaj() != Stanje.ISKLJUČEN:
-            print("Rastavljač uzemljenja nije isključen, stoga se linijski rastavljač ne može uključiti")
-            return
+    # def ukljuci_linijski_rastavljac(self):
+    #     if not self.spreman_uredaj(self.i_rastavljac):
+    #         return
+    #     if self.u_rastavljac.odredi_polozaj() != Stanje.ISKLJUČEN:
+    #         print("Rastavljač uzemljenja nije isključen, stoga se linijski rastavljač ne može uključiti")
+    #         return
 
-        self.i_rastavljac.komanda(True)
+    #     self.i_rastavljac.komanda(True)
         
     def ukljuci_sabirnicki_rastavljac(self, num):
         if not self.spreman_uredaj(self.s_rastavljacS1) and num==1:
             return
         if not self.spreman_uredaj(self.s_rastavljacS2) and num==2:
             return
+        if not self.spreman_uredaj(self.i_rastavljac):
+            return
         
         if self.u_rastavljac.odredi_polozaj() != Stanje.ISKLJUČEN:
             print("Rastavljač uzemljenja nije isključen, stoga se sabirnički rastavljač ne može uključiti")
             return
-
+        self.i_rastavljac.komanda(True)
         match num:
             case 1:
                 self.s_rastavljacS1.komanda(True)
@@ -187,24 +189,26 @@ class Polje(ABC):
             return
         self.prekidac.komanda(False)
         
-    def iskljuci_linijski_rastavljac(self):
-        if not self.spreman_uredaj(self.i_rastavljac):
-            return
-        if self.prekidac.odredi_polozaj() != Stanje.ISKLJUČEN:
-            print("Prekidač nije isključen, stoga se linijski rastavljač ne može isključiti")
-            return
-        self.i_rastavljac.komanda(False)
+    # def iskljuci_linijski_rastavljac(self):
+    #     if not self.spreman_uredaj(self.i_rastavljac):
+    #         return
+    #     if self.prekidac.odredi_polozaj() != Stanje.ISKLJUČEN:
+    #         print("Prekidač nije isključen, stoga se linijski rastavljač ne može isključiti")
+    #         return
+    #     self.i_rastavljac.komanda(False)
         
     def iskljuci_sabirnicki_rastavljac(self, num):
         if not self.spreman_uredaj(self.s_rastavljacS1) and num==1:
             return
         if not self.spreman_uredaj(self.s_rastavljacS2) and num==2:
             return
+        if not self.spreman_uredaj(self.i_rastavljac):
+            return
         if self.prekidac.odredi_polozaj() != Stanje.ISKLJUČEN:
             print("Prekidač nije isključen, stoga se sabirnički rastavljač ne može isključiti")
             return
 
-
+        self.i_rastavljac.komanda(False)
         match num:
             case 1:
                 self.s_rastavljacS1.komanda(False)
@@ -225,11 +229,11 @@ class Polje(ABC):
             self.ukljuci_prekidac()
 
             
-    def interakcija_i_rastavljac(self):
-        if self.i_rastavljac.odredi_polozaj() == Stanje.UKLJUČEN:
-            self.iskljuci_linijski_rastavljac()
-        else:   
-            self.ukljuci_linijski_rastavljac()
+    # def interakcija_i_rastavljac(self):
+    #     if self.i_rastavljac.odredi_polozaj() == Stanje.UKLJUČEN:
+    #         self.iskljuci_linijski_rastavljac()
+    #     else:   
+    #         self.ukljuci_linijski_rastavljac()
 
 
     def interakcija_u_rastavljac(self):
@@ -249,19 +253,7 @@ class Polje(ABC):
             self.ukljuci_sabirnicki_rastavljac(2)
 
 
-        match num:
-            case 1:
-                self.s_rastavljacS1.komanda(False)
-            case 2:
-                self.s_rastavljacS2.komanda(False)
-            case _:
-                print("Nije nađen taj sabirnički rastavljač")
-    
-    def iskljuci_rastavljac_uzemljenja(self):
-        if not self.spreman_uredaj(self.u_rastavljac):
-            return
-        self.u_rastavljac.komanda(False)
-
+  
         
     
 class LTB145D1(Prekidac):                   # naslijeđuje klasu Prekidac
@@ -571,9 +563,9 @@ class Dalekovodno1Sab(DalekovodnoPolje):
         
     def ukljuci_sabirnicki_rastavljac(self):
         if self.u_rastavljac.odredi_polozaj() != Stanje.ISKLJUČEN:
-            print("Rastavljač uzemljenja nije isključen, stoga se prekidač ne može uključiti")
+            print("Rastavljač uzemljenja nije isključen, stoga se sabirnički rastavljač ne može uključiti")
             return
-
+        self.i_rastavljac.komanda(True)
         self.s_rastavljac.komanda(True)
 
 
@@ -596,7 +588,7 @@ class Dalekovodno1Sab(DalekovodnoPolje):
         if self.prekidac.odredi_polozaj() != Stanje.ISKLJUČEN:
             print("Prekidač nije isključen, stoga se sabirnički rastavljač ne može isključiti")
             return
-
+        self.i_rastavljac.komanda(False)
         self.s_rastavljac.komanda(False)
 
 
