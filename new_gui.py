@@ -1,8 +1,7 @@
 import tkinter as tk
-from scenariji import *
 from classes import *
 
-
+dalekovod = Dalekovod()
 def check_color():
     new_color = 'black' if dalekovod.D_polje1.prekidac.odredi_polozaj() == Stanje.ISKLJUČEN else 'green'
     canvas.itemconfig(line_D1, fill=new_color)
