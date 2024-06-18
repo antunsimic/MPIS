@@ -221,6 +221,7 @@ class Polje(ABC):
             self.iskljuci_prekidac()
         else:   
             self.ukljuci_prekidac()
+
             
     def interakcija_i_rastavljac(self):
         if self.i_rastavljac.odredi_polozaj() == Stanje.UKLJUČEN:
