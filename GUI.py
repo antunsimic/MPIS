@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Jun 18 19:51:11 2024
-
-@author: antun
-"""
-
 import tkinter as tk
 
 def draw_point(canvas, x, y, color='black', radius=3, fill="black"):
@@ -52,9 +44,10 @@ draw_text(canvas, 46, s1_height, "S1")
 s2_height = 70
 draw_line(canvas, 82, s2_height, 1005, s2_height)
 draw_text(canvas, 46, s2_height, "S2")
+draw_text(canvas, 1036, 53, "TS D1")
 
 
-#dalekovodno polje s 2 sabirnice = bez uređaja
+#dalekovodno polje s 2 sabirnice = bez uređaja__________
 draw_point(canvas, 491, s2_height)
 draw_line(canvas, 491, s2_height, 491, 127)
 draw_line(canvas, 491, 127, 546, 127)
@@ -63,27 +56,64 @@ draw_point(canvas, 546, s1_height)
 draw_line(canvas, 519, 127, 519, 249)
 
 
-#spojno polje = bez uređaja
+#sabirnički rastavljači na tom dalekovodnom polju
+#S2
+draw_line(canvas, 476, 93, 506, 108)
+#s2
+draw_line(canvas, 531, 93, 561, 108)
+
+#prekidač na tom polju
+draw_line(canvas, 504, 147, 534, 162)
+draw_line(canvas, 504, 162, 534, 147)
+
+
+#rastavljač uzemljenja
+draw_line(canvas, 504, 192, 534, 207)
+
+#spojno polje = bez uređaja__________________
 draw_point(canvas, 792, s2_height)
-draw_line(canvas, 792, s2_height, 792, 150)
-draw_line(canvas, 792, 150, 854, 150)
-draw_line(canvas, 854, 150, 854, s1_height)
+draw_line(canvas, 792, s2_height, 792, 170)
+draw_line(canvas, 792, 170, 854, 170)
+draw_line(canvas, 854, 170, 854, s1_height)
 draw_point(canvas, 854, s1_height)
-draw_point(canvas, 823, 150, radius=12, fill="")
+draw_point(canvas, 823, 170, radius=12, fill="")
 
 
-#sabirnica na strani gdje ima samo jedna sabrinica
-s_height=558
+#sabirnički rastavljač S2
+draw_line(canvas, 777, 93, 807, 108)
+
+#sabirnički rastavljač S1
+draw_line(canvas, 839, 93, 869, 108)
+
+#prekidač na spojnom polju
+draw_line(canvas, 777, 129, 807, 144)
+draw_line(canvas, 777, 144, 807, 129)
+
+#sabirnica na strani gdje ima samo jedna sabrinica______________
+s_height=598
 draw_line(canvas, 82, s_height, 1005, s_height)
-
+draw_text(canvas, 1036, s_height, "TS D2")
 
 #dalekovodno polje s jednom sabirnicom
 draw_line(canvas, 519, s_height, 519, 399)
 draw_point(canvas, 519, s_height)
 
+#rastavljač sabirnički
+draw_line(canvas, 504, 556, 534, 571)
 
-#dalekovod
+#prekidač
+draw_line(canvas, 504, 514, 534, 529)
+draw_line(canvas, 504, 529, 534, 514)
+
+#rastavljač uzemljenja
+draw_line(canvas, 504, 460, 534, 475)
+
+
+#dalekovod ____________________________________________________
 draw_line(canvas, 519, 399, 519, 249)
+draw_point(canvas, 519, 399)
+draw_point(canvas, 519, 249)
+
 
 
 root.mainloop()
