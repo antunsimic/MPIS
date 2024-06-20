@@ -130,13 +130,13 @@ class Polje(ABC):
     def ukljuci_prekidac(self):
         if not self.spreman_uredaj(self.prekidac):
             return
-        if self.u_rastavljac.odredi_polozaj() != Stanje.ISKLJUČEN:
+        elif self.u_rastavljac.odredi_polozaj() != Stanje.ISKLJUČEN:
             print("Rastavljač uzemljenja nije isključen, stoga se prekidač ne može uključiti")
             return
-        if self.s_rastavljacS2.odredi_polozaj() != Stanje.UKLJUČEN and self.s_rastavljacS1.odredi_polozaj() != Stanje.UKLJUČEN:
+        elif self.s_rastavljacS2.odredi_polozaj() != Stanje.UKLJUČEN and self.s_rastavljacS1.odredi_polozaj() != Stanje.UKLJUČEN:
             print("Sabirnički rastavljač nije uključen, stoga se prekidač ne može uključiti")
             return
-        if self.i_rastavljac.odredi_polozaj() != Stanje.UKLJUČEN:
+        elif self.i_rastavljac.odredi_polozaj() != Stanje.UKLJUČEN:
             print("Linijski rastavljač nije uključen, stoga se prekidač ne može uključiti")
             return
         self.prekidac.komanda(True)
@@ -227,6 +227,8 @@ class Polje(ABC):
             self.iskljuci_prekidac()
         else:   
             self.ukljuci_prekidac()
+            
+    
 
             
     # def interakcija_i_rastavljac(self):
@@ -251,7 +253,29 @@ class Polje(ABC):
             self.iskljuci_sabirnicki_rastavljac(2)
         else:   
             self.ukljuci_sabirnicki_rastavljac(2)
-
+    def izlistaj_uredaj(self, uredaj, odabir="trenutne"):
+        if not hasattr(uredaj, "get_state_info"):
+            print("Greška: metoda izlistaj_uredaj može se pozvati samo nad uređajima")
+            return
+        uredaj_signali = uredaj.get_state_info()
+        for key, value in uredaj_signali.items():
+            value=str(value)
+            print(key + " " + value)
+            if odabir=="sve":
+                key2 = swap_s1_s2(key)
+                if key2 != key: print(key2 + " " + value)
+                stanje_values = [e.value for e in Stanje]
+                stanjeop_values = [e.value for e in StanjeOp]
+                upravljanje_values = [e.value for e in Upravljanje]
+                if value in stanje_values:
+                    print_theRest(key, value, stanje_values)
+                    if key != key2: print_theRest(key2, value, stanje_values)
+                elif value in stanjeop_values:
+                    print_theRest(key, value, stanjeop_values)
+                    if key != key2: print_theRest(key2, value, stanjeop_values)
+                elif value in upravljanje_values:
+                    print_theRest(key, value, upravljanje_values)
+                    if key != key2: print_theRest(key2, value, upravljanje_values)
 
   
         
@@ -502,7 +526,12 @@ class Dalekovodno2Sab(DalekovodnoPolje):
         
         self.S_polje=SpojnoPolje()
         self.S_polje.iskljuci()
-        
+      
+    def prespoji1(self):
+        self.prespoji(1)
+    def prespoji2(self):
+        self.prespoji(2)
+           
     def prespoji(self, num):
         # Control the SpojnoPolje to switch to the new busbar
         if not self.S_polje.spremno():
@@ -523,8 +552,6 @@ class Dalekovodno2Sab(DalekovodnoPolje):
         self.representation = "TS_D1_110kV DV_D1_S" + str(num)
         self.S_polje.iskljuci()
         print("Spojeno na S", num)
-        
-
 
 
         
@@ -641,34 +668,62 @@ class Dalekovod:
     def __init__(self, num=2):
         self.D_polje1 = Dalekovodno1Sab()
         self.D_polje2 = Dalekovodno2Sab(num)
+        self.stanje = Stanje.UKLJUČEN
+        self.devices = {
+            'Dalekovodno Polje TS D1': ['prekidač', 'rastavljač sabirnički S1', "rastavljač sabirnički S2", "rastavljač izlazni", "distantna zaštita", "APU", "nadstrujna zaštita", "mjerni pretvornik"],
+            'Dalekovodno Polje TS D2': ['prekidač', 'rastavljač sabirnički', "rastavljač izlazni", "distantna zaštita", "APU", "nadstrujna zaštita", "mjerni pretvornik"],
+            'Spojno Polje TS D1': ['prekidač', 'rastavljač sabirnički S1', "rastavljač sabirnički S2"]
+        }
+    def get_all_devices(self):
+        # Gather all unique devices across all fields
+        all_devices = set()
+        for devices in self.devices.values():
+            all_devices.update(devices)
+        return list(all_devices)
+
+    def get_devices_in_field(self, field):
+        # Return devices associated with the specified field
+        return self.devices.get(field, [])
     
     
-    def ukljuci(self, num=2):
+    def ukljuci(self, numb):
+        if self.stanje == Stanje.UKLJUČEN:
+            print("Dalekovod je već uključen")
+            return
         for polje in [self.D_polje1, self.D_polje2]:
             if not polje.spremno():
                 print("Stoga se dalekovod ne može uključiti.")
                 return
         self.D_polje1.u_rastavljac.komanda(False)
         self.D_polje2.u_rastavljac.komanda(False)
-
+        print("here")
         #uključiti sabirničke rastavljače s obje strane
         self.D_polje1.s_rastavljac.komanda(True)
-        match num:
+        match numb:
             case 1:
                 self.D_polje2.s_rastavljacS1.komanda(True)
             case 2:
                 self.D_polje2.s_rastavljacS2.komanda(True)
-        self.D_polje2.aktivna_sabirnica=num
+        self.D_polje2.aktivna_sabirnica=numb
         #uključiti linijske rastavljače s obje strane
         self.D_polje1.i_rastavljac.komanda(True)
         self.D_polje2.i_rastavljac.komanda(True)
         #uključiti prekidače s obje strane
         self.D_polje1.prekidac.komanda(True)
         self.D_polje2.prekidac.komanda(True)
-        
+        self.D_polje2.representation = "TS_D1_110kV DV_D1_S" + str(numb)
         print("Dalekovod uključen")
-
+        self.stanje = Stanje.UKLJUČEN
+        
+    def ukljuci1(self):
+        self.ukljuci(1)
+    def ukljuci2(self):
+        self.ukljuci(2)
+        
     def iskljuci(self):
+        if self.stanje == Stanje.ISKLJUČEN:
+            print("Dalekovod je već isključen")
+            return
         for polje in [self.D_polje1, self.D_polje2]:
             if not polje.spremno():
                 print("Stoga se dalekovod ne može isključiti.")
@@ -685,6 +740,7 @@ class Dalekovod:
         self.D_polje1.s_rastavljac.komanda(False)
         self.D_polje2.s_rastavljacS1.komanda(False)
         self.D_polje2.s_rastavljacS2.komanda(False)
+        self.D_polje2.S_polje.iskljuci()
         
         #uključiti rastavljače za uzemljenje s obje strane
         self.D_polje1.u_rastavljac.komanda(True)
@@ -692,48 +748,27 @@ class Dalekovod:
         
             
         print("Dalekovod isključen")
+        self.stanje = Stanje.ISKLJUČEN
     
-    def izlistaj(self, odabir="trenutne"):
-        self.izlistaj_polje(self.D_polje1, odabir)
-        self.izlistaj_polje(self.D_polje2, odabir)
-        self.izlistaj_polje(self.D_polje2.S_polje, odabir)
+    # def izlistaj(self, odabir="trenutne"):
+    #     self.izlistaj_polje(self.D_polje1, odabir)
+    #     self.izlistaj_polje(self.D_polje2, odabir)
+    #     self.izlistaj_polje(self.D_polje2.S_polje, odabir)
        
         
     
-    def izlistaj_polje(self, polje, odabir="trenutne"):
-        if not isinstance(polje, Polje):
-            print("Greška: metoda izlistaj_polje može se pozvati samo nad poljem")
-            return
-        # Iterate over all attributes of the object
-        for attribute_name in dir(polje):
-            uredaj = getattr(polje, attribute_name)
-            # Check if the attribute is an object and has the 'get_state_info' method
-            if hasattr(uredaj, 'get_state_info'):
-                self.izlistaj_uredaj(uredaj, odabir)
+    # def izlistaj_polje(self, polje, odabir="trenutne"):
+    #     if not isinstance(polje, Polje):
+    #         print("Greška: metoda izlistaj_polje može se pozvati samo nad poljem")
+    #         return
+    #     # Iterate over all attributes of the object
+    #     for attribute_name in dir(polje):
+    #         uredaj = getattr(polje, attribute_name)
+    #         # Check if the attribute is an object and has the 'get_state_info' method
+    #         if hasattr(uredaj, 'get_state_info'):
+    #             self.izlistaj_uredaj(uredaj, odabir)
 
-    def izlistaj_uredaj(self, uredaj, odabir="trenutne"):
-        if not hasattr(uredaj, "get_state_info"):
-            print("Greška: metoda izlistaj_uredaj može se pozvati samo nad uređajima")
-            return
-        uredaj_signali = uredaj.get_state_info()
-        for key, value in uredaj_signali.items():
-            value=str(value)
-            print(key + " " + value)
-            if odabir=="sve":
-                key2 = swap_s1_s2(key)
-                if key2 != key: print(key2 + " " + value)
-                stanje_values = [e.value for e in Stanje]
-                stanjeop_values = [e.value for e in StanjeOp]
-                upravljanje_values = [e.value for e in Upravljanje]
-                if value in stanje_values:
-                    print_theRest(key, value, stanje_values)
-                    if key != key2: print_theRest(key2, value, stanje_values)
-                elif value in stanjeop_values:
-                    print_theRest(key, value, stanjeop_values)
-                    if key != key2: print_theRest(key2, value, stanjeop_values)
-                elif value in upravljanje_values:
-                    print_theRest(key, value, upravljanje_values)
-                    if key != key2: print_theRest(key2, value, upravljanje_values)
+
 
 
 class SpojnoPolje(Polje):                                      # naslijeđuje klasu Polje 
@@ -791,7 +826,13 @@ class SpojnoPolje(Polje):                                      # naslijeđuje kl
             print("Stanje uređaja je nepoznato. Potrebno je poslati osoblje u rasklopno postrojenje. Uređaj se ne može uključiti / isključiti")
             return False
         return True
-
+    def ukljuci_prekidac(self):
+        if not self.spreman_uredaj(self.prekidac):
+            return
+        elif self.s_rastavljacS2.odredi_polozaj() != Stanje.UKLJUČEN or self.s_rastavljacS1.odredi_polozaj() != Stanje.UKLJUČEN:
+            print("Sabirnički rastavljači nisu uključeni, stoga se prekidač ne može uključiti")
+            return
+        self.prekidac.komanda(True)
     
 
 
